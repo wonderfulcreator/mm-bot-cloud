@@ -77,7 +77,31 @@ async def update_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_document(MM_XLSX.open("rb"), filename="mm.xlsx")
     else:
         await update.message.reply_text("После выполнения mm.xlsx не найден. Проверь лог /status и last_run.log")
+async def upload(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not allowed(update):
+        return
 
+    doc = update.message.document if update.message else None
+    if not doc:
+        await update.message.reply_text("Пришли файл mm.xlsx как Document.")
+        return
+
+    if not doc.file_name.lower().endswith(".xlsx"):
+        await update.message.reply_text("Нужен .xlsx файл (mm.xlsx).")
+        return
+
+    await update.message.reply_text("Скачиваю файл…")
+
+    file = await context.bot.get_file(doc.file_id)
+
+    # Сохраняем строго как mm.xlsx в volume
+    tmp_path = DATA_DIR / f"__upload__{doc.file_unique_id}.xlsx"
+    await file.download_to_drive(custom_path=str(tmp_path))
+
+    # Заменяем целевой файл
+    tmp_path.replace(MM_XLSX)
+
+    await update.message.reply_text(f"Готово ✅ Сохранено в {MM_XLSX}\nТеперь можно /update")
 def main():
     app = Application.builder().token(TG_TOKEN).build()
     app.add_handler(CommandHandler("start", start))
