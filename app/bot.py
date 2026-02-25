@@ -108,6 +108,7 @@ def main():
     app.add_handler(CommandHandler("status", status))
     app.add_handler(CommandHandler("send", send))
     app.add_handler(CommandHandler("update", update_cmd))
+    app.add_handler(MessageHandler(filters.Document.ALL, upload))
     app.run_polling(close_loop=False)
 
 if __name__ == "__main__":
